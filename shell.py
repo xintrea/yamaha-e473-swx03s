@@ -6,8 +6,12 @@ import itertools
 from threading import Thread
 import readchar
 
-in_port = mido.open_input("Digital Keyboard:Digital Keyboard MIDI 1 24:0")
-out_port = mido.open_output("Digital Keyboard:Digital Keyboard MIDI 1 24:0")
+# in_port = mido.open_input("Digital Keyboard:Digital Keyboard MIDI 1 24:0")
+# out_port = mido.open_output("Digital Keyboard:Digital Keyboard MIDI 1 24:0")
+# in_port = mido.open_input("Digital Keyboard:Digital Keyboard MIDI 1 20:0")
+# out_port = mido.open_output("Digital Keyboard:Digital Keyboard MIDI 1 20:0")
+in_port = mido.open_input("Digital Keyboard MIDI 1")
+out_port = mido.open_output("Digital Keyboard MIDI 1")
 
 def got_message(message):
     if message.dict()["type"] != "sysex":
