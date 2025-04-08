@@ -61,8 +61,10 @@ def got_message(message):
     if( ('\n>' in s) or (is_prev_br and len(s)>=1 and s[0]=='>') ):
         enable_input = True
 
+
 # Установка функции приема символов от Yamaha на порт входа
 in_port.callback = got_message
+
 
 # Функция отправки строки в MIDI-порт
 def send_str(s):
