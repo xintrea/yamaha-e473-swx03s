@@ -76,34 +76,9 @@ def send_str(s):
     out_port.send(mido.Message("sysex", data=[0x43, 0x73, 0x01, 0x52, 0x19, 0x00, 0x00] + payload))
 
 
-# Функция опроса ввода с клавиатуры
-'''
-def poll_input():
-    while True:
-        
-        key = readchar.readchar()
-        
-        if key:
-            
-            # Исправление \n на \r (видимо, такой тип перевода строки понимает Yamaha)
-            if key == '\n':
-                key = '\r'
-
-            # Блокирование отправки кода символа 0x03, не совсем понятно зачем
-            elif key == chr(3):
-                return
-            
-            # Отправка символа в MIDI-порт
-            send_str(key)
-'''            
-
-async def main():
+def main_cycle():
 
     global enable_input
-    
-    # t = Thread(target=poll_input) # Создается тред, в котором будет крутиться функция опроса клавиатуры
-    # t.run()
-    # t.join()
     
     print("\n", "Отправка login", "\n")
     enable_input = True
@@ -145,6 +120,34 @@ async def main():
         
         # Отправка очередной команды
         send_str(command+"\n")
+
+
+'''
+def poll_input():
+    while True:
+        
+        key = readchar.readchar()
+        
+        if key:
+            
+            # Исправление \n на \r (видимо, такой тип перевода строки понимает Yamaha)
+            if key == '\n':
+                key = '\r'
+
+            # Блокирование отправки кода символа 0x03, не совсем понятно зачем
+            elif key == chr(3):
+                return
+            
+            # Отправка символа в MIDI-порт
+            send_str(key)
+'''            
+
+async def main():
+    
+    t = Thread(target=main_cycle) # Создается тред, в котором будет крутиться основная функция
+    t.run()
+    t.join()
+    
 
 # Запуск программы
 asyncio.run(main())
