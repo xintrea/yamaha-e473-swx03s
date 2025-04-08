@@ -19,10 +19,12 @@ in_port = mido.open_input("Digital Keyboard MIDI 1")
 out_port = mido.open_output("Digital Keyboard MIDI 1")
 
 # Первые 16Mb 
-addr_from="00000000" # HEX-адрес без префикса 0x
-addr_to  ="00FFFFFF"
+addr_from='00000000' # HEX-адрес без префикса 0x
+addr_to  ='00FFFFFF'
 
 enable_input=False
+
+prev_message_symbols=''
 
 # Функция получения байтов из MIDI порта,
 # Работает асинхронно по факту получения новых данных
@@ -47,10 +49,15 @@ def got_message(message):
     # Вывод символа на экран    
     print(s, end="", flush=True)
     
+    # Если предыдущая выводимая строка заканчивалась на перевод строки
+    is_prev_br = False
+    if prev_message_symbols and prev_message_symbols[-1] == '\n':
+        is_prev_br = True
+        
+    prev_message_symbols = s
+    
     # Если пришел символ приглашения ввода
-    # (При снятии дампа нигде больше символ '>' встречаться не должен,
-    # он появляется только как символ ввода)
-    if('>' in s):
+    if( ('\n>' in s) or (is_prev_br and len(s)>=1 and s[0]=='>') ):
         enable_input = True
 
 # Установка функции приема символов от Yamaha на порт входа
