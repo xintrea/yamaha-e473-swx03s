@@ -44,7 +44,8 @@ def got_message(message):
             c = '\n'
         s += c
         
-    # Вывод символа на экран    
+    # Вывод символов на экран    
+    # print('[', s, ']', end="", flush=True)
     print(s, end="", flush=True)
     
     # Если пришел символ приглашения ввода
