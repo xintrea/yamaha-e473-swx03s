@@ -27,6 +27,9 @@ enable_input=False
 # Функция получения байтов из MIDI порта,
 # Работает асинхронно по факту получения новых данных
 def got_message(message):
+
+    global enable_input
+
     if message.dict()["type"] != "sysex":
         return
     data = message.dict()["data"]
@@ -48,19 +51,19 @@ def got_message(message):
     # (При снятии дампа нигде больше символ '>' встречаться не должен,
     # он появляется только как символ ввода)
     if('>' in s):
-        global enable_input
         enable_input = True
 
 
 # Функция отправки строки в MIDI-порт
 def send_str(s):
+
+    global enable_input
     
     if not enable_input:
         return
     
     # Пока отправляются и принимаются данные, никакой ввод не разрешен
     # до появления нового приглашения ввода
-    global enable_input
     enable_input = False
     
     # Полезная нагрузка
@@ -93,6 +96,8 @@ def poll_input():
 '''            
 
 async def main():
+
+    global enable_input
     
     # t = Thread(target=poll_input) # Создается тред, в котором будет крутиться функция опроса клавиатуры
     # t.run()
