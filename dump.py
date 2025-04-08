@@ -101,8 +101,6 @@ def main_cycle():
 
     for dump_count in range (0, dump_size):
 
-        print("\n", "Начало запроса секции номер ", dump_count, "\n", flush=True)
-        
         command = ''
         if dump_count == 0:
             command = 'd '+addr_from
@@ -113,9 +111,13 @@ def main_cycle():
         while enable_input == False:
             # Пока идет вывод, программа находится в этом цикле
             # То есть, большую часть времени программа находится в этом цикле
-            
-            key = readchar.readchar() # Опрос клавиатуры чтобы можно было прервать программу
+
+            # Данный опрос клавиатуры останавливает программу на ожидание символа, поэтому закомментирован
+            # key = readchar.readchar() # Опрос клавиатуры чтобы можно было прервать программу
+
+            pass
         
+        print("\n", "Начало запроса секции номер ", dump_count, "\n", flush=True)
         print("\n", "Отправка команды ", command, "\n", flush=True)
         
         # Отправка очередной команды
