@@ -103,9 +103,11 @@ async def main():
     # t.run()
     # t.join()
     
+    print("Отправка login")
     send_str("login\n")
     time.sleep(1)
     
+    print("Отправка пароля")
     send_str("#0000\n")
     time.sleep(1)
     
@@ -117,6 +119,8 @@ async def main():
     dump_size = int( addr_range / 256 ) + 1
 
     for dump_count in range (0, dump_size):
+
+        print("Начало запроса секции номер ", dump_count)
         
         command = ''
         if dump_count == 0:
@@ -130,6 +134,8 @@ async def main():
             # То есть, большую часть времени программа находится в этом цикле
             
             key = readchar.readchar() # Опрос клавиатуры чтобы можно было прервать программу
+        
+        print("Отправка команды ", command)
         
         # Отправка очередной команды
         send_str(command+"\n")
