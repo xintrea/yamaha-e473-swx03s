@@ -53,6 +53,8 @@ def got_message(message):
     if('>' in s):
         enable_input = True
 
+# Установка функции приема символов от Yamaha на порт входа
+in_port.callback = got_message
 
 # Функция отправки строки в MIDI-порт
 def send_str(s):
@@ -103,11 +105,13 @@ async def main():
     # t.run()
     # t.join()
     
-    print("Отправка login")
+    print("\n", "Отправка login", "\n")
+    enable_input = True
     send_str("login\n")
     time.sleep(1)
     
-    print("Отправка пароля")
+    print("\n", "Отправка пароля", "\n")
+    enable_input = True
     send_str("#0000\n")
     time.sleep(1)
     
@@ -118,13 +122,15 @@ async def main():
     # Количество команд "d"
     dump_size = int( addr_range / 256 ) + 1
 
+    print("\n", "Всего будет запрошено секций: ", dump_size, "\n")
+
     for dump_count in range (0, dump_size):
 
-        print("Начало запроса секции номер ", dump_count)
+        print("\n", "Начало запроса секции номер ", dump_count, "\n")
         
         command = ''
         if dump_count == 0:
-            command = 'd'
+            command = 'd '+addr_from
         else:
             command = 'dp'
 
@@ -135,14 +141,10 @@ async def main():
             
             key = readchar.readchar() # Опрос клавиатуры чтобы можно было прервать программу
         
-        print("Отправка команды ", command)
+        print("\n", "Отправка команды ", command, "\n")
         
         # Отправка очередной команды
         send_str(command+"\n")
-
-
-# Установка функции приема символов от Yamaha на порт входа
-in_port.callback = got_message
 
 # Запуск программы
 asyncio.run(main())
