@@ -80,14 +80,14 @@ def main_cycle():
 
     global enable_input
     
-    print("\n", "Отправка login", "\n")
+    print("\n", "Отправка login", "\n", flush=True)
     enable_input = True
-    send_str("login\n")
+    send_str("login"+chr(13))
     time.sleep(1)
     
-    print("\n", "Отправка пароля", "\n")
+    print("\n", "Отправка пароля", "\n", flush=True)
     enable_input = True
-    send_str("#0000\n")
+    send_str("#0000"+chr(13))
     time.sleep(1)
     
     dec_addr_from=int("0x"+addr_from, 16)
@@ -97,11 +97,11 @@ def main_cycle():
     # Количество команд "d"
     dump_size = int( addr_range / 256 ) + 1
 
-    print("\n", "Всего будет запрошено секций: ", dump_size, "\n")
+    print("\n", "Всего будет запрошено секций: ", dump_size, "\n", flush=True)
 
     for dump_count in range (0, dump_size):
 
-        print("\n", "Начало запроса секции номер ", dump_count, "\n")
+        print("\n", "Начало запроса секции номер ", dump_count, "\n", flush=True)
         
         command = ''
         if dump_count == 0:
@@ -116,10 +116,10 @@ def main_cycle():
             
             key = readchar.readchar() # Опрос клавиатуры чтобы можно было прервать программу
         
-        print("\n", "Отправка команды ", command, "\n")
+        print("\n", "Отправка команды ", command, "\n", flush=True)
         
         # Отправка очередной команды
-        send_str(command+"\n")
+        send_str(command+chr(13))
 
 
 '''

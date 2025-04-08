@@ -45,7 +45,7 @@ def poll_input():
             elif key == chr(3):
                 return
             
-            print("\nКод:\n", ord(key))
+            # print("\nКод:\n", ord(key), flush=True)
             send_str(key)
 
 async def main():
