@@ -23,8 +23,40 @@ addr_from='00000000' # HEX-адрес без префикса 0x
 addr_to  ='00FFFFFF'
 
 enable_input=False
-
 prev_message_symbols=''
+accum_string=''
+
+# Сохранение полученных данных в файл
+def save_data(s):
+
+    global accum_string
+
+    accum_string += s
+
+    if not "\n" in accum_string:
+        return
+
+    save_string_count = accum_string.count("\n")
+    
+    save_string_list = accum_string.split("\n")
+    
+    for i in range(0, save_string_count):
+    
+        line = save_string_list[i]
+        
+        if len(line)>=57:
+
+            # Оставляются только символы адреса и HEX-кодов
+            line = line[0:58]
+
+            with open("dump.txt", "a", encoding="utf-8") as file:
+                file.write(line+"\n")
+
+    if accum_string[-1]!="\n":
+        accum_string = save_string_list[-1]
+    else:
+        accum_string = ''
+
 
 # Функция получения байтов из MIDI порта,
 # Работает асинхронно по факту получения новых данных
@@ -53,6 +85,8 @@ def got_message(message):
     # Вывод символов на экран    
     # print('[', s, ']', end="", flush=True)
     print(s, end="", flush=True)
+
+    save_data(s)
 
     # for sym in s:
     #     print(hex(ord(sym)), end="", flush=True)
