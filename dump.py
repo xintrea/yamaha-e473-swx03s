@@ -31,32 +31,40 @@ prev_message_symbols=''
 def got_message(message):
 
     global enable_input
+    global prev_message_symbols
 
     if message.dict()["type"] != "sysex":
         return
+
     data = message.dict()["data"]
     if len(data) < 9:
         return
+
     payload = data[7:]
     # print(payload)
+
     s = ""
     for hi, lo in zip(payload[0::2], payload[1::2]):
         c = chr((hi << 4) | lo)
         if c == '\r':
             c = '\n'
         s += c
-        
+
     # Вывод символов на экран    
     # print('[', s, ']', end="", flush=True)
     print(s, end="", flush=True)
-    
+
+    # for sym in s:
+    #     print(hex(ord(sym)), end="", flush=True)
+    # print(" ", flush=True)
+
     # Если предыдущая выводимая строка заканчивалась на перевод строки
     is_prev_br = False
-    if prev_message_symbols and prev_message_symbols[-1] == '\n':
+    if prev_message_symbols!='' and prev_message_symbols[-1] == '\n':
         is_prev_br = True
-        
+
     prev_message_symbols = s
-    
+
     # Если пришел символ приглашения ввода
     if( ('\n>' in s) or (is_prev_br and len(s)>=1 and s[0]=='>') ):
         enable_input = True
