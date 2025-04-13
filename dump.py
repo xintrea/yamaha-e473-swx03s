@@ -44,10 +44,10 @@ def save_data(s):
     
         line = save_string_list[i]
         
-        if len(line)>=57:
+        if len(line)>=56:
 
             # Оставляются только символы адреса и HEX-кодов
-            line = line[0:58]
+            line = line[0:57]
 
             with open("dump.txt", "a", encoding="utf-8") as file:
                 file.write(line+"\n")
