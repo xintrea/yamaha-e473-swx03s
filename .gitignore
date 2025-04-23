@@ -2,3 +2,5 @@
 a.out
 *.elf
 fun/*.bin
+dump_*.txt
+hexdump_*.bin

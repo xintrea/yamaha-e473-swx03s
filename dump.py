@@ -19,8 +19,8 @@ in_port = mido.open_input("Digital Keyboard MIDI 1")
 out_port = mido.open_output("Digital Keyboard MIDI 1")
 
 # Первые 16Mb 
-addr_from='00000000' # HEX-адрес без префикса 0x
-addr_to  ='00FFFFFF'
+addr_from='0A000000' # HEX-адрес без префикса 0x
+addr_to  ='0B000100'
 
 enable_input=False
 prev_message_symbols=''
