@@ -6,6 +6,7 @@ import itertools
 from threading import Thread
 import readchar
 import time
+import re
 
 # in_port = mido.open_input("Digital Keyboard:Digital Keyboard MIDI 1 24:0")
 # out_port = mido.open_output("Digital Keyboard:Digital Keyboard MIDI 1 24:0")
@@ -21,6 +22,69 @@ out_port = mido.open_output("Digital Keyboard MIDI 1")
 enable_input=False
 prev_message_symbols=''
 accum_string=''
+
+last_need_display="none" # Допустимые варианты: "none", "voice", "style"
+do_push_voice=False
+do_push_style=False
+
+is_login_completed=False
+
+# Обработка результата выполнения одной команды
+def parse_command_result(s):
+
+    global last_need_display
+    global do_push_voice
+    global do_push_style
+
+    string_count = s.count("\n")
+    string_list = s.split("\n")
+    
+    if string_count==0:
+        return
+    
+    # В первой строке находится сама команда
+    command = string_list[0];
+    
+    if command == "dispinfo":
+
+        print("\nОбнаружен ответ на команду dispinfo", end="\n", flush=True)
+        
+        # Поиск строки вида "002 (Jobcon ID:004)%"
+        pattern = r'^\s*(\d+)\s+\(Jobcon ID:(\d+)\)%$'
+        matches = re.findall(pattern, s, re.MULTILINE) # Результат: [('002', '004')] или [('003', '005') или [('052', '059')]
+        
+        if len(matches) == 0:
+            return
+
+        
+        disp_id, disp_jobcon = matches[0]
+        
+        print("disp_id:", disp_id, " disp_jobcon:", disp_jobcon, end="\n", flush=True)
+        
+        if disp_id=="002" and disp_jobcon=="004": # Обнаружено что отображается режим Voice
+            last_need_display = "voice"
+            print("Запомнен целевой экран Voice", end="\n", flush=True)
+            return
+
+        if disp_id=="003" and disp_jobcon=="005": # Обнаружено что отображается режим Style
+            last_need_display = "style"
+            print("Запомнен целевой экран Style", end="\n", flush=True)
+            return
+
+        
+        if disp_id=="052" and disp_jobcon=="059": # Обнаружено что отображается режим Main A или Main B
+
+            print("Обнаружен режим экрана Main A/Main B", end="\n", flush=True)
+
+            if last_need_display == "voice":
+                do_push_voice=True
+                print("Должна нажаться кнопка Voice", end="\n", flush=True)
+                return
+
+            if last_need_display == "style":
+                do_push_style=True
+                print("Должна нажаться кнопка Style", end="\n", flush=True)
+                return
 
 
 # Обработка данных, полученных от Yamaha в консоли
@@ -44,8 +108,12 @@ def parse_console_data(s):
     if( ('\n>' in s) or (is_prev_br and len(s)>=1 and s[0]=='>') ):
         
         # Значит ответ на команду полностью получен
-        print("Ответ команды:", end="", flush=True)
+        # В первой строке будет находиться сама команда, так как она
+        # повторялась ("визуализировалась") самой консолью при отправке команды
+        print("Ответ команды: ", end="", flush=True)
         print(accum_string, end="", flush=True)
+        
+        parse_command_result(accum_string)
         
         accum_string = ''
         enable_input = True
@@ -55,6 +123,7 @@ def parse_console_data(s):
 # Работает асинхронно по факту получения новых данных
 def got_message(message):
 
+    global is_login_completed
     global enable_input
     global prev_message_symbols
 
@@ -79,11 +148,13 @@ def got_message(message):
     # print('[', s, ']', end="", flush=True)
     # print(s, end="", flush=True)
 
-    parse_console_data(s)
-
     # for sym in s:
     #     print(hex(ord(sym)), end="", flush=True)
     # print(" ", flush=True)
+
+    # Обработка вывода разрешается только после того как произошел вход в консоль
+    if is_login_completed:
+        parse_console_data(s)
 
 
 # Установка функции приема символов от Yamaha на порт входа
@@ -126,7 +197,12 @@ def send_command(command):
 
 def main_cycle():
 
+    global is_login_completed    
     global enable_input
+    global do_push_voice
+    global do_push_style
+    
+    # Ввод логина и пароля - это не команды, их нельзя делать через send_command()
     
     print("\n", "Отправка login", "\n", flush=True)
     enable_input = True
@@ -137,9 +213,22 @@ def main_cycle():
     enable_input = True
     send_str("#0000"+chr(13))
     time.sleep(1)
+    
+    is_login_completed = True
+    enable_input = True
 
     while True:
         send_command('dispinfo')
+        
+        if do_push_voice:
+            do_push_voice = False
+            send_command('pushsw 12')
+            send_command('sendsw')
+
+        if do_push_style:
+            do_push_style = False
+            send_command('pushsw 13')
+            send_command('sendsw')
 
 
 '''
