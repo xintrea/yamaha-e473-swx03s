@@ -18,44 +18,37 @@ in_port = mido.open_input("Digital Keyboard MIDI 1")
 # Объект MIDI-порта, работающего на выход
 out_port = mido.open_output("Digital Keyboard MIDI 1")
 
-# Первые 16Mb 
-addr_from='0A000000' # HEX-адрес без префикса 0x
-addr_to  ='0B000100'
-
 enable_input=False
 prev_message_symbols=''
 accum_string=''
 
-# Сохранение полученных данных в файл
-def save_data(s):
 
+# Обработка данных, полученных от Yamaha в консоли
+def parse_console_data(s):
+
+    global enable_input
+    global prev_message_symbols
     global accum_string
 
+    # Новые данные добавляются в многострочную строку
     accum_string += s
 
-    if not "\n" in accum_string:
-        return
+    # Если предыдущая выводимая строка заканчивалась на перевод строки
+    is_prev_br = False
+    if prev_message_symbols!='' and prev_message_symbols[-1] == '\n':
+        is_prev_br = True
 
-    save_string_count = accum_string.count("\n")
-    
-    save_string_list = accum_string.split("\n")
-    
-    for i in range(0, save_string_count):
-    
-        line = save_string_list[i]
+    prev_message_symbols = s
+
+    # Если пришел символ приглашения ввода
+    if( ('\n>' in s) or (is_prev_br and len(s)>=1 and s[0]=='>') ):
         
-        if len(line)>=56:
-
-            # Оставляются только символы адреса и HEX-кодов
-            line = line[0:57]
-
-            with open("dump.txt", "a", encoding="utf-8") as file:
-                file.write(line+"\n")
-
-    if accum_string[-1]!="\n":
-        accum_string = save_string_list[-1]
-    else:
+        # Значит ответ на команду полностью получен
+        print("Ответ команды:", end="", flush=True)
+        print(accum_string, end="", flush=True)
+        
         accum_string = ''
+        enable_input = True
 
 
 # Функция получения байтов из MIDI порта,
@@ -84,24 +77,13 @@ def got_message(message):
 
     # Вывод символов на экран    
     # print('[', s, ']', end="", flush=True)
-    print(s, end="", flush=True)
+    # print(s, end="", flush=True)
 
-    save_data(s)
+    parse_console_data(s)
 
     # for sym in s:
     #     print(hex(ord(sym)), end="", flush=True)
     # print(" ", flush=True)
-
-    # Если предыдущая выводимая строка заканчивалась на перевод строки
-    is_prev_br = False
-    if prev_message_symbols!='' and prev_message_symbols[-1] == '\n':
-        is_prev_br = True
-
-    prev_message_symbols = s
-
-    # Если пришел символ приглашения ввода
-    if( ('\n>' in s) or (is_prev_br and len(s)>=1 and s[0]=='>') ):
-        enable_input = True
 
 
 # Установка функции приема символов от Yamaha на порт входа
@@ -128,6 +110,20 @@ def send_str(s):
     out_port.send(mido.Message("sysex", data=[0x43, 0x73, 0x01, 0x52, 0x19, 0x00, 0x00] + payload))
 
 
+def send_command(command):
+
+    global enable_input
+
+    # Цикл ожидания когда ввод будет разрешен
+    while enable_input == False:
+        pass
+    
+    print("Отправка команды: ", command, "\n", flush=True)
+    
+    # Отправка очередной команды
+    send_str(command+chr(13))
+
+
 def main_cycle():
 
     global enable_input
@@ -141,39 +137,9 @@ def main_cycle():
     enable_input = True
     send_str("#0000"+chr(13))
     time.sleep(1)
-    
-    dec_addr_from=int("0x"+addr_from, 16)
-    dec_addr_to  =int("0x"+addr_to, 16)
-    addr_range = dec_addr_to - dec_addr_from
 
-    # Количество команд "d"
-    dump_size = int( addr_range / 256 ) + 1
-
-    print("\n", "Всего будет запрошено секций: ", dump_size, "\n", flush=True)
-
-    for dump_count in range (0, dump_size):
-
-        command = ''
-        if dump_count == 0:
-            command = 'd '+addr_from
-        else:
-            command = 'dp'
-
-        # Цикл ожидания когда ввод будет разрешен
-        while enable_input == False:
-            # Пока идет вывод, программа находится в этом цикле
-            # То есть, большую часть времени программа находится в этом цикле
-
-            # Данный опрос клавиатуры останавливает программу на ожидание символа, поэтому закомментирован
-            # key = readchar.readchar() # Опрос клавиатуры чтобы можно было прервать программу
-
-            pass
-        
-        print("\n", "Начало запроса секции номер ", dump_count, "\n", flush=True)
-        print("\n", "Отправка команды ", command, "\n", flush=True)
-        
-        # Отправка очередной команды
-        send_str(command+chr(13))
+    while True:
+        send_command('dispinfo')
 
 
 '''
